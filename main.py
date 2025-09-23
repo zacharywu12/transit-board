@@ -1,6 +1,8 @@
 from bike import get_station_bike_availability
 from typing import Dict
 
+target_stations_shortnames = ["SF-F23-2", "SF-F23-3", "SF-F23", "SF-F24", "SF-G24"]
+
 def print_station_info(stations: Dict[str, dict]) -> None:
     """
     Print formatted bike availability information for each station.
@@ -14,7 +16,6 @@ def print_station_info(stations: Dict[str, dict]) -> None:
         print(f"E-bikes available: {info['ebikes_available']}")
 
 def main():
-    target_stations_shortnames = ["SF-F23-2"]
     try:
         stations = get_station_bike_availability(target_stations_shortnames)
         print_station_info(stations)
