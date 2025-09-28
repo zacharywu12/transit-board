@@ -1,12 +1,18 @@
 from bike import get_station_bike_availability
+from muni import MuniAPI
 from typing import Dict
 import time
 import os
 from datetime import datetime
 
-target_stations_shortnames = ["SF-F23-2", "SF-F23-3", "SF-F23", "SF-F24", "SF-G24"]
+# Configuration
+target_stations_shortnames = ["SF-F23-2", "SF-F23-3", "SF-F23", "SF-F24"]
 
-def format_table(stations: Dict[str, dict]) -> str:
+# Muni stop IDs and their descriptions
+target_stops = ["18092", "18101", "16303", "14022", "13812", "16597", "16016", "15813", "14302"]
+num_predictions = 3  # Number of predictions to show per route/direction
+
+def format_bike_table(stations: Dict[str, dict]) -> str:
     """
     Format station information as a simple ASCII table.
     """
@@ -33,13 +39,28 @@ def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def main():
+    # Initialize APIs
+    muni = MuniAPI()
+    
     try:
         while True:
             try:
                 clear_screen()
+                current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                
+                # Get and display bike information
+                print(f"\nLast updated: {current_time} PST")
+                print("\nBike Share Status:")
                 stations = get_station_bike_availability(target_stations_shortnames)
-                print(f"\nLast updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} PST")
-                print("\n" + format_table(stations) + "\n")
+                print(format_bike_table(stations))
+                
+                # Get and display Muni predictions
+                print("\nMuni Predictions:")
+                predictions = muni.get_stop_predictions(target_stops, num_predictions)
+                print(muni.format_predictions(predictions))
+                print()  # Empty line for spacing
+                
+                # Wait before next update
                 time.sleep(30)
             except Exception as e:
                 print(f"Error: {e}")
