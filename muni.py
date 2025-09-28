@@ -172,23 +172,21 @@ class MuniAPI:
         return processed_predictions
 
     def format_predictions(self, predictions_by_stop: Dict[str, Dict[tuple, List[Dict[str, any]]]], show_stop_ids: bool = True) -> str:
-        """Format predictions into a human-readable string"""
+        """Format predictions into a single human-readable table"""
         if not predictions_by_stop:
             return "No predictions available"
             
         now = datetime.now(pytz.timezone('America/Los_Angeles'))
-        all_results = []
         
+        # Collect all predictions in a flat structure
+        all_predictions = []
         for stop_id, route_groups in predictions_by_stop.items():
-            if show_stop_ids:
-                all_results.append(f"\nStop {stop_id}:")
-            
             if not route_groups:
-                all_results.append("  No predictions available")
                 continue
                 
             # Sort routes numerically
-            sorted_groups = sorted(route_groups.items(), key=lambda x: int(x[0][0]) if x[0][0].isdigit() else float('inf'))
+            sorted_groups = sorted(route_groups.items(),
+                                 key=lambda x: int(x[0][0]) if x[0][0].isdigit() else float('inf'))
             
             for (route_id, direction), preds in sorted_groups:
                 # Format times
@@ -196,15 +194,42 @@ class MuniAPI:
                 for pred in preds:
                     minutes = int((pred['arrival_time'] - now).total_seconds() / 60)
                     if minutes <= 0:
-                        times.append("Arriving")
+                        times.append("Now")
                     else:
-                        times.append(f"{minutes} min")
+                        times.append(f"{minutes}m")
                 
-                # Add the route line
-                times_str = ", ".join(times)
-                all_results.append(f"  {route_id} ({direction}): {times_str}")
+                all_predictions.append({
+                    'route_id': route_id,
+                    'direction': direction,
+                    'times': times
+                })
+        
+        if not all_predictions:
+            return "No predictions available"
+        
+        # Calculate column widths
+        route_width = 8  # For route number
+        direction_width = max(
+            max(len(pred['direction']) for pred in all_predictions),
+            15  # Minimum width
+        )
+        
+        # Create header
+        header = f"| {'Route':^{route_width}} | {'Direction':<{direction_width}} | {'Predictions':<30} |"
+        separator = f"|{'-' * (route_width + 2)}|{'-' * (direction_width + 2)}|{'-' * 32}|"
+        
+        # Build table
+        table = [header, separator]
+        
+        # Add each prediction row
+        for pred in all_predictions:
+            times_str = ", ".join(pred['times'])
+            row = f"| {pred['route_id']:^{route_width}} | {pred['direction']:<{direction_width}} | {times_str:<30} |"
+            table.append(row)
+        
+        return "\n".join(table)
             
-        return "\n".join(all_results)
+        return "\n".join(all_tables)
 
 def main():
     # Initialize API
