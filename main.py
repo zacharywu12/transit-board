@@ -9,7 +9,19 @@ from datetime import datetime
 target_stations_shortnames = ["SF-F23-2", "SF-F23-3", "SF-F23", "SF-F24"]
 
 # Muni stop IDs and their descriptions
-target_stops = ["18092", "18101", "16303", "14022", "13812", "16597", "16016", "15813", "14302"]
+target_stops = [
+    "18092",
+    "18101",
+    "16303",
+    "14022",
+    "13812",
+    "16597",
+    "16016",
+    "15813",
+    "14302",
+    "16002",
+    "15995",
+]
 num_predictions = 3  # Number of predictions to show per route/direction
 
 def format_bike_table(stations: Dict[str, dict]) -> str:
